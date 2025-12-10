@@ -1,0 +1,18 @@
+services:
+  app1: 
+    image: ssh-image
+    container_name: ssh-client
+    tty: true
+    networks:
+      - ssh-network
+
+  app2:
+    image: ssh-image
+    container_name: ssh-server
+    tty: true
+    networks:
+      - ssh-network
+
+networks:
+  ssh-network:
+    driver: bridge
