@@ -1,4 +1,4 @@
-#! python3
+#! /usr/bin/env python3
 
 
 import os
@@ -18,6 +18,8 @@ def generate_ssh_key(key_path: str, key_type: str = 'rsa') -> int:
         key_path (str): The directory where the generated key will be saved.
     """
     filename = os.path.join(key_path, f'id_{key_type}')
+    
+    print(f"generating {key_type} key at {filename}")
 
     import subprocess
     result = subprocess.run(
