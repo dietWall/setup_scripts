@@ -4,13 +4,41 @@
 
 import pytest
 
+def test_show_code_directory(client_container):
+    print("") #newline 
+
+    cmd = "ls -la /home/appuser"
+    exec_result = client_container.exec_run(cmd=cmd, demux=True)
+    print(f"exit code: {exec_result.exit_code}")
+    for line in exec_result.output[0].decode('utf-8').splitlines():
+        print(f"{line}")
+
+    cmd = "ls -la /home/appuser/code/ssh/"
+    exec_result = client_container.exec_run(cmd=cmd, demux=True)
+    print(f"exit code: {exec_result.exit_code}")
+    for line in exec_result.output[0].decode('utf-8').splitlines():
+        print(f"{line}")
+
+
 
 @pytest.mark.parametrize("key_type", ["rsa", "dsa", "ecdsa", "ed25519"])
 def test_ssh_keys_generation(client_container, key_type):
     print("") #newline 
 
+    cmd = "ls -la /home/appuser/code/ssh/"
+    exec_result = client_container.exec_run(cmd=cmd, demux=True)
+
+    for line in exec_result.output[0].decode('utf-8').splitlines():
+        print(f"{line}")
+
+
     key_path = f"/home/appuser/keys/"
-    exec_result = client_container.exec_run(cmd=f"/home/appuser/ssh-keys.py --generate {key_type} --key-path={key_path}", demux=True)
+    cmd=f"/home/appuser/code/ssh/ssh-keys.py --generate {key_type} --key-path={key_path}"
+    
+    print(f"running:")
+    print(f"{cmd}")
+
+    exec_result = client_container.exec_run(cmd=cmd, demux=True)
     print(f"exit code: {exec_result.exit_code}")
     
     for line in exec_result.output[0].decode('utf-8').splitlines():

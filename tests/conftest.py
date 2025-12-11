@@ -15,7 +15,11 @@ def containers(repo_root):
         capture_output=True
     )
     if compose_result.returncode != 0:
-        raise RuntimeError("Failed to start docker-compose services for tests.")
+        for line in compose_result.stdout.decode('utf-8').splitlines():
+            print(f"{line}")
+        for line in compose_result.stderr.decode('utf-8').splitlines():
+            print(f"{line}")
+        raise RuntimeError(f"docker-compose returned: {compose_result.returncode}")
     
     import docker
     client = docker.from_env()

@@ -2,6 +2,8 @@ services:
   app1: 
     image: ssh-image
     container_name: ssh-client
+    volumes:
+      - ../:/home/appuser/code/:ro
     tty: true
     networks:
       - ssh-network

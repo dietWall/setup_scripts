@@ -2,22 +2,30 @@
 
 import subprocess
 import argparse
+import docker
+from docker.models.containers import Container as Container
 
 test_image_tag = "ssh-image"
 
-def build_image(ssh_script_path):
-    print(f"building {test_image_tag} with ssh script at: {ssh_script_path}")
-    import docker
+def get_repo_root():
+    repo_root = subprocess.run(["git", "rev-parse", "--show-toplevel"],capture_output=True)
+    return repo_root.stdout.strip().decode('utf-8')
+
+def build_image() -> bool:
+    print(f"building {test_image_tag}")
     client = docker.from_env()
-    client.images.build(path=".", tag=test_image_tag, buildargs={"SSH_SCRIPT_PATH": ssh_script_path})
+    client.images.build(path=".", tag=test_image_tag)
     print(f"Successfully built image: {test_image_tag}")
     return True
 
-def run_container(image_tag):
+def run_container(image_tag: str) -> Container:
     print(f"Running container from image: {image_tag}")
-    import docker
+    import docker.types
+    
+    mounts=[docker.types.Mount(target="/home/appuser/code/", source=f"{get_repo_root()}", type="bind", read_only=False)]
     client = docker.from_env()
-    container = client.containers.run(image_tag, detach=True, tty=True)
+    
+    container = client.containers.run(image_tag, detach=True, tty=True, mounts=mounts)
     print(f"Container {container.id} is running.")
     print(f"enter with: ")
     print(f"docker exec -it {container.name} bash")
@@ -25,7 +33,6 @@ def run_container(image_tag):
 
 def stop_container(test_image_tag):
     print(f"Stopping and removing containers from image: {test_image_tag}")
-    import docker
     client = docker.from_env()
     containers = client.containers.list(all=True, filters={"ancestor": test_image_tag})
     for container in containers:
@@ -48,8 +55,8 @@ def main():
     # Build the image
     if args.build is not None:
         if args.build == 'test_image':
-            repo_root = subprocess.run(["git", "rev-parse", "--show-toplevel"],capture_output=True)
-            build_image(f"{repo_root.stdout.strip().decode('utf-8')}/ssh/ssh-keys.py")
+            repo_root = get_repo_root() #subprocess.run(["git", "rev-parse", "--show-toplevel"],capture_output=True)
+            build_image(f"{repo_root}/ssh/ssh-keys.py")
 
     if args.run is not None:
         if args.run == 'test_image':
