@@ -21,7 +21,6 @@ def build_image() -> bool:
 def run_container(image_tag: str) -> Container:
     print(f"Running container from image: {image_tag}")
     import docker.types
-    
     mounts=[docker.types.Mount(target="/home/appuser/code/", source=f"{get_repo_root()}", type="bind", read_only=False)]
     client = docker.from_env()
     
@@ -30,6 +29,34 @@ def run_container(image_tag: str) -> Container:
     print(f"enter with: ")
     print(f"docker exec -it {container.name} bash")
     return container
+
+def run_network() -> bool:
+    print(f"Running ssh-network using docker-compose")
+    repo_root = get_repo_root()
+    compose_result = subprocess.run(
+        ["docker", "compose", "-f", f"{repo_root}/tests/compose.yml", "up", "-d"],
+        capture_output=True
+    )
+    if compose_result.returncode != 0:
+        for line in compose_result.stdout.decode('utf-8').splitlines():
+            print(f"{line}")
+        for line in compose_result.stderr.decode('utf-8').splitlines():
+            print(f"{line}")
+        raise RuntimeError(f"docker-compose returned: {compose_result.returncode}")
+    
+    print("ssh-network is up and running.")
+    
+    import tests.conftest
+    tests.conftest.run_network(repo_root=repo_root)
+    containers = tests.conftest.network()
+    client_container = tests.conftest.client(containers)
+    server_container = tests.conftest.server(containers)
+
+    print(f"enter client with:")
+    print(f"docker exec -it {client_container.name} bash")
+    print(f"enter server with:")
+    print(f"docker exec -it {server_container.name} bash")
+    return True
 
 def stop_container(test_image_tag):
     print(f"Stopping and removing containers from image: {test_image_tag}")
@@ -45,7 +72,7 @@ def stop_container(test_image_tag):
 
 def main():
     """Main function to build Docker images and run containers"""
-    available_images = ['test_image']
+    available_images = ['test_image', 'ssh-network']
     parser = argparse.ArgumentParser(description="Builds and run different images and containers in this repo")
     parser.add_argument("--build",'-b', help="Builds the Docker image", choices=available_images, default=None, nargs='?')
     parser.add_argument("--run", '-r', help="Runs the Docker container", choices=available_images, default=None, nargs='?')
@@ -54,13 +81,18 @@ def main():
         
     # Build the image
     if args.build is not None:
-        if args.build == 'test_image':
-            repo_root = get_repo_root()
+        if args.build == 'test_image' or args.build == 'ssh-network':
             build_image()
+        else:
+            print(f"Unknown image to build: {args.build}")
 
     if args.run is not None:
         if args.run == 'test_image':
             run_container(test_image_tag)
+        elif args.run == 'ssh-network':
+            run_network()
+        else:
+            print(f"Unknown image to run: {args.run}")
     
     if args.stop is not None:
         if args.stop == 'test_image':
