@@ -119,18 +119,23 @@ if __name__ == "__main__":
         if not os.path.exists(public_key_path):
             print(f"Public key not found at {public_key_path}. Cannot deploy.")
         else:
-            import subprocess
-            result = subprocess.run(
-                ["ssh-copy-id", "-i", public_key_path, args.deploy_to_host],
-                capture_output=True
-            )
-            print(f"ssh-copy-id exited with return code {result.returncode}, output:")
-            for l in result.stdout.decode().splitlines():
-                print(f"stdout: {l}")
-            if result.returncode != 0:
+            result = deploy_ssh_key_to_host(public_key_path, args.deploy_to_host)
+            if result != 0:
                 print("Failed to deploy SSH key.")
             else:
-                print(f"SSH key deployed to {args.deploy_to_host} successfully.")
+                print(f"SSH key {public_key_path} deployed to {args.deploy_to_host} successfully.")
+            # import subprocess
+            # result = subprocess.run(
+            #     ["ssh-copy-id", "-i", public_key_path, args.deploy_to_host],
+            #     capture_output=True
+            # )
+            # print(f"ssh-copy-id exited with return code {result.returncode}, output:")
+            # for l in result.stdout.decode().splitlines():
+            #     print(f"stdout: {l}")
+            # if result.returncode != 0:
+            #     print("Failed to deploy SSH key.")
+            # else:
+            #     print(f"SSH key deployed to {args.deploy_to_host} successfully.")
 
     import sys
     sys.exit(0)
