@@ -55,8 +55,8 @@ def main():
     # Build the image
     if args.build is not None:
         if args.build == 'test_image':
-            repo_root = get_repo_root() #subprocess.run(["git", "rev-parse", "--show-toplevel"],capture_output=True)
-            build_image(f"{repo_root}/ssh/ssh-keys.py")
+            repo_root = get_repo_root()
+            build_image()
 
     if args.run is not None:
         if args.run == 'test_image':
