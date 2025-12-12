@@ -21,6 +21,4 @@ RUN mkdir -p /home/appuser/keys
 
 EXPOSE 22
 
-COPY sshd_config /etc/ssh/sshd_config
-
 CMD ["sudo", "/usr/sbin/sshd", "-D"]
