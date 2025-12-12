@@ -9,6 +9,7 @@ services:
       - ssh-network
     ports:
       - "22222:22"
+    hostname: ssh-client
 
   app2:
     image: ssh-image
@@ -18,6 +19,7 @@ services:
       - ssh-network
     ports:
       - "2222:22"
+    hostname: ssh-server
 
 networks:
   ssh-network:
