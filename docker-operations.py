@@ -11,10 +11,25 @@ def get_repo_root():
     repo_root = subprocess.run(["git", "rev-parse", "--show-toplevel"],capture_output=True)
     return repo_root.stdout.strip().decode('utf-8')
 
+def load_env() -> bool:
+    import os
+    if os.path.exists('.env'):
+        from dotenv import load_dotenv
+        return load_dotenv('.env')
+    return False
+
 def build_image() -> bool:
     print(f"building {test_image_tag}")
+    build_args = None
+
+    if load_env() == False:
+        print("No .env file found or could not be loaded, proceeding without it.")
+    else:
+        import os
+        build_args = {"PASSWORD": os.environ['PASSWORD']}
+
     client = docker.from_env()
-    client.images.build(path=".", tag=test_image_tag)
+    client.images.build(path=".", tag=test_image_tag, buildargs=build_args)
     print(f"Successfully built image: {test_image_tag}")
     return True
 
