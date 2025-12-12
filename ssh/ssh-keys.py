@@ -73,19 +73,6 @@ def find_key_file(key_path: str, key_type: str = 'rsa') -> str:
         str: The full path to the SSH key file if found, else an empty string.
     """
     return ""
-    # if key_type is "rsa":
-    #     filename = os.path.join(key_path, f'id_{key_type}')
-    # else if key_type is "dsa":
-    #     filename = os.path.join(key_path, f'id_{key_type}')
-    # else if key_type is "ecdsa":
-    #     filename = os.path.join(key_path, f'id_{key_type}')
-    # else if key_type is "ed25519":
-    #     filename = os.path.join(key_path, f'id_{key_type}')
-    
-    # if os.path.exists(filename):
-    #     return filename
-    # else:
-    #     return ""
 
 if __name__ == "__main__":
     import argparse
@@ -124,18 +111,5 @@ if __name__ == "__main__":
                 print("Failed to deploy SSH key.")
             else:
                 print(f"SSH key {public_key_path} deployed to {args.deploy_to_host} successfully.")
-            # import subprocess
-            # result = subprocess.run(
-            #     ["ssh-copy-id", "-i", public_key_path, args.deploy_to_host],
-            #     capture_output=True
-            # )
-            # print(f"ssh-copy-id exited with return code {result.returncode}, output:")
-            # for l in result.stdout.decode().splitlines():
-            #     print(f"stdout: {l}")
-            # if result.returncode != 0:
-            #     print("Failed to deploy SSH key.")
-            # else:
-            #     print(f"SSH key deployed to {args.deploy_to_host} successfully.")
-
     import sys
     sys.exit(0)
