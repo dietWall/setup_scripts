@@ -1,6 +1,16 @@
 import pytest
 
+def create_empty_env_file(repo_root):
+    env_path = f"{repo_root}/.env"
+    import os
+    if os.path.exists(f"{repo_root}/.env") == False:
+        with open(env_path, "w") as f:
+            f.write("\n")
+    return env_path
+
 def run_network(repo_root):
+    create_empty_env_file(repo_root)
+
     import subprocess
     compose_result = subprocess.run(
         ["docker", "compose", "-f", f"{repo_root}/tests/compose.yml", "up", "-d"],

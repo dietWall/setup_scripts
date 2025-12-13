@@ -10,6 +10,8 @@ services:
     ports:
       - "22222:22"
     hostname: ssh-client
+    env_file:
+      - ../.env
 
   app2:
     image: ssh-image
@@ -20,6 +22,8 @@ services:
     ports:
       - "2222:22"
     hostname: ssh-server
+    env_file:
+      - ../.env
 
 networks:
   ssh-network:

@@ -17,7 +17,8 @@ USER appuser
 RUN sudo mkdir /var/run/sshd
 RUN sudo ssh-keygen -A
 
-RUN mkdir -p /home/appuser/keys
+RUN mkdir -p /home/appuser/.ssh
+
 
 EXPOSE 22
 
