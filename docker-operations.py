@@ -48,18 +48,6 @@ def run_container(image_tag: str) -> Container:
 def run_network() -> bool:
     print(f"Running ssh-network using docker-compose")
     repo_root = get_repo_root()
-    compose_result = subprocess.run(
-        ["docker", "compose", "-f", f"{repo_root}/tests/compose.yml", "up", "-d"],
-        capture_output=True
-    )
-    if compose_result.returncode != 0:
-        for line in compose_result.stdout.decode('utf-8').splitlines():
-            print(f"{line}")
-        for line in compose_result.stderr.decode('utf-8').splitlines():
-            print(f"{line}")
-        raise RuntimeError(f"docker-compose returned: {compose_result.returncode}")
-    
-    print("ssh-network is up and running.")
     
     import tests.conftest
     tests.conftest.run_network(repo_root=repo_root)
