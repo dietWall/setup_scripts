@@ -1,4 +1,6 @@
 FROM ubuntu:latest
+#passing password as build arg is very bad. I do not see a good solution for this.
+#This is yet only for testing, so it is good enough for now.
 ARG PASSWORD=pass
 
 RUN apt-get update && apt-get install -y sudo openssh-client openssh-server python3-venv
