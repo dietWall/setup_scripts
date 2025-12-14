@@ -4,6 +4,7 @@
 
 import pytest
 
+@pytest.mark.skip(reason="just for debugging")
 def test_show_code_directory(client_container):
     print("") #newline 
 
@@ -64,4 +65,4 @@ def test_ssh_keys_deploy(client_container, server_container, key_type):
 
     assert exec_result.exit_code == 0, "Key deployment failed"
     # it would be good to test the connection without password, which is actually the final goal
-    # but that requires more setup
+    # but that requires more setup with user input for accepting server key
