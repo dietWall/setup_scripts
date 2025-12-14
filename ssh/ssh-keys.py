@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-
 import os
 
 default_key_path = ""
@@ -33,46 +32,41 @@ def generate_ssh_key(key_path: str, key_type: str = 'rsa') -> int:
 
     return result.returncode
 
-def deploy_ssh_key_to_host(file: str, user_at_host: str) -> int:
-    """Deploy the SSH public key to the specified user@host 
-    on Linux: using ssh-copy-id
-    on Windows: a specific ssh command on windows.
-    Args:
-        file (str): Public key file to deploy.
-        user_at_host (str): The target in the format user@host where the key will be deployed.
-    """
-    commmand = ""
-    
-    if os.name == 'nt':
-        commmand = f'type {file} | ssh {user_at_host} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"'
-    elif os.name == 'posix':
-        commmand = f'ssh-copy-id -i {file} {user_at_host}'
-    else:
-        raise NotImplementedError("Unknown OS, not implemented.")
+def deploy(file: str, user_at_host: str, password: str) -> int:
+    user = user_at_host.split('@')[0]
+    server = user_at_host.split('@')[1]
+    with open(file, 'r') as f:
+        key = f.read()
 
-    import subprocess
-    result = subprocess.run(
-        commmand,
-        capture_output=True
-    )
-
-    print(f"copying resulted in {result.returncode}, output:")
-    
-    for l in result.stdout.decode().splitlines():
-        print(f"stdout: {l}")
-
-    return result.returncode
-
+    import paramiko
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(server, username=user, password=password)
+    client.exec_command('mkdir -p ~/.ssh/')
+    client.exec_command('echo "%s" > ~/.ssh/authorized_keys' % key)
+    client.exec_command('chmod 644 ~/.ssh/authorized_keys')
+    client.exec_command('chmod 700 ~/.ssh/')
+    return 0
 
 def find_key_file(key_path: str, key_type: str = 'rsa') -> str:
     """Find the SSH key file of the specified type in the given path.
+    It is used in case of a key is already existing and user wants just to deploy it
     Args:
         key_type (str): The type of SSH key ('rsa', 'dsa', 'ecdsa', 'ed25519').
         key_path (str): The directory path where the key files are stored.
     Returns:
         str: The full path to the SSH key file if found, else an empty string.
     """
+    if os.path.exists(key_path):
+        filename = os.path.join(key_path, f'id_{key_type}')
+        if os.path.exists(filename):
+            return filename
     return ""
+
+def password_prompt() -> str:
+    import getpass
+    password = getpass.getpass(prompt="Enter password for deployment: ")
+    return password
 
 if __name__ == "__main__":
     import argparse
@@ -84,8 +78,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--key-path", type=str,
         help="Path to the file for generated key", default=default_key_path)
-    
     parser.add_argument("--deploy-to-host", type=str, help="deploys the key from --key-path to the given <user>@<host> via ssh", default=None)
+    #we need dotenv option for tests
+    parser.add_argument("--password_type", type=str, help="password input type", choices=["prompt", "dotenv"], default="prompt")
+    parser.add_argument("--dotenv-file", type=str, help="defines the .env file location", default="/home/appuser/code/.env")
     
     args = parser.parse_args()
     print(f"args: {args}")
@@ -100,16 +96,29 @@ if __name__ == "__main__":
 
     if args.deploy_to_host != None:
         print(f"Deploying SSH key to {args.deploy_to_host}...")
-
         public_key_path = os.path.join(args.key_path, f'id_{args.generate}.pub')
         
         if not os.path.exists(public_key_path):
             print(f"Public key not found at {public_key_path}. Cannot deploy.")
         else:
-            result = deploy_ssh_key_to_host(public_key_path, args.deploy_to_host)
-            if result != 0:
-                print("Failed to deploy SSH key.")
+            password = ""
+            import getpass
+            if args.password_type == "prompt":
+                password = password_prompt()
             else:
-                print(f"SSH key {public_key_path} deployed to {args.deploy_to_host} successfully.")
+                from dotenv import dotenv_values
+                config = dotenv_values(args.dotenv_file)
+                password = config.get("PASSWORD", "")
+            
+            if password is not None and password != "":
+                result = deploy(public_key_path, args.deploy_to_host, password)
+
+                if result != 0:
+                    print("Failed to deploy SSH key.")
+                else:
+                    print(f"SSH key {public_key_path} deployed to {args.deploy_to_host} successfully.")
+            else:
+                print("No password provided. Cannot deploy.")
+                exit(1)
     import sys
     sys.exit(0)
