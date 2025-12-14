@@ -9,6 +9,16 @@ if os.name == 'nt':
 else:
     default_key_path = os.path.join(os.environ['HOME'], '.ssh' )
 
+def get_filename(key_path: str, key_type : str) -> str:
+    filename = os.path.join(key_path, f'id_{key_type}')    
+    if os.path.exists(filename) == True:
+        suffix = 1
+
+        while os.path.exists(filename) == True:
+            filename = os.path.join(key_path, f'id_{key_type}_{suffix}')
+            suffix += 1
+    return filename
+
 
 def generate_ssh_key(key_path: str, key_type: str = 'rsa') -> int:
     """Generate an SSH key of the specified type and save it to the given path.
@@ -16,8 +26,8 @@ def generate_ssh_key(key_path: str, key_type: str = 'rsa') -> int:
         key_type (str): The type of SSH key to generate ('rsa', 'dsa', 'ecdsa', 'ed25519').
         key_path (str): The directory where the generated key will be saved.
     """
-    filename = os.path.join(key_path, f'id_{key_type}')
-    
+    filename = get_filename(key_path, key_type)
+
     print(f"generating {key_type} key at {filename}")
 
     import subprocess
@@ -47,21 +57,6 @@ def deploy(file: str, user_at_host: str, password: str) -> int:
     client.exec_command('chmod 644 ~/.ssh/authorized_keys')
     client.exec_command('chmod 700 ~/.ssh/')
     return 0
-
-def find_key_file(key_path: str, key_type: str = 'rsa') -> str:
-    """Find the SSH key file of the specified type in the given path.
-    It is used in case of a key is already existing and user wants just to deploy it
-    Args:
-        key_type (str): The type of SSH key ('rsa', 'dsa', 'ecdsa', 'ed25519').
-        key_path (str): The directory path where the key files are stored.
-    Returns:
-        str: The full path to the SSH key file if found, else an empty string.
-    """
-    if os.path.exists(key_path):
-        filename = os.path.join(key_path, f'id_{key_type}')
-        if os.path.exists(filename):
-            return filename
-    return ""
 
 def password_prompt() -> str:
     import getpass
@@ -102,14 +97,13 @@ if __name__ == "__main__":
             print(f"Public key not found at {public_key_path}. Cannot deploy.")
         else:
             password = ""
-            import getpass
             if args.password_type == "prompt":
                 password = password_prompt()
             else:
                 from dotenv import dotenv_values
                 config = dotenv_values(args.dotenv_file)
                 password = config.get("PASSWORD", "")
-            
+
             if password is not None and password != "":
                 result = deploy(public_key_path, args.deploy_to_host, password)
 
@@ -120,5 +114,4 @@ if __name__ == "__main__":
             else:
                 print("No password provided. Cannot deploy.")
                 exit(1)
-    import sys
-    sys.exit(0)
+    exit(0)
