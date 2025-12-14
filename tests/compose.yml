@@ -2,9 +2,16 @@ services:
   app1: 
     image: ssh-image
     container_name: ssh-client
+    volumes:
+      - ../:/home/appuser/code/:ro
     tty: true
     networks:
       - ssh-network
+    ports:
+      - "22222:22"
+    hostname: ssh-client
+    env_file:
+      - ../.env
 
   app2:
     image: ssh-image
@@ -12,6 +19,11 @@ services:
     tty: true
     networks:
       - ssh-network
+    ports:
+      - "2222:22"
+    hostname: ssh-server
+    env_file:
+      - ../.env
 
 networks:
   ssh-network:

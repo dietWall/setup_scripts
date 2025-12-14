@@ -1,17 +1,29 @@
 FROM ubuntu:latest
-ARG SSH_SCRIPT_PATH
+#passing password as build arg is very bad. I do not see a good solution for this.
+#This is yet only for testing, so it is good enough for now.
+ARG PASSWORD=pass
 
-RUN apt-get update && apt-get install -y sudo openssh-client openssh-server
+RUN apt-get update && apt-get install -y sudo openssh-client openssh-server python3-venv
 
 RUN useradd -m -s /bin/bash appuser && \
     echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+# sshd needs a password for login
+RUN echo "appuser:${PASSWORD}" | chpasswd
+
 WORKDIR /home/appuser
 
-COPY ssh/ssh-keys.py /home/appuser/ssh-keys.py
-RUN chmod +x /home/appuser/ssh-keys.py
-RUN chown appuser:appuser /home/appuser/ssh-keys.py
 USER appuser
-RUN mkdir -p /home/appuser/keys
 
-CMD ["/bin/bash"]
+#sshd needs some additional configuration
+RUN sudo mkdir /var/run/sshd
+RUN sudo ssh-keygen -A
+
+RUN mkdir -p /home/appuser/.ssh
+
+EXPOSE 22
+ADD requirements.txt /home/appuser/requirements.txt
+RUN python3 -m venv ssh-venv
+RUN /bin/bash -c "source ssh-venv/bin/activate && pip install -r /home/appuser/requirements.txt"
+
+CMD ["sudo", "/usr/sbin/sshd", "-D"]
