@@ -6,7 +6,7 @@ import os
 
 class Repo_Helper:
 
-    def __init__(self, logfile: str|None) -> None:
+    def __init__(self, logfile: str|None = None) -> None:
         self.logfile = logfile
 
     def execute(self, command: str, log: bool = False):
@@ -38,9 +38,9 @@ class Repo_Helper:
     def build_docker_image(self, dockerfile: str, image_name: str):
         #we need some preparations for relative paths:
         cwd = os.getcwd()
-        #path = os.path.join(cwd, dockerfile)
+        path = os.path.join(cwd, dockerfile)
 
-        command = f"docker build -t {image_name} {cwd}"
+        command = f"docker build -t {image_name} {path}"
         result,_ = self.execute(command=command, log=True)
         if result.returncode != 0:
             print(f"docker build failed with: {result}")
@@ -49,12 +49,12 @@ class Repo_Helper:
             print(f"successfully built {image_name} from: {dockerfile}")
         return result
 
-    def start_container(self, image_name: str, container_name: str) -> int:
-        command = f"docker run --detach -i --name {container_name} --mount type=bind,src={self.repo_root()},dst=/workspace/code {image_name}"
+    def start_container(self, image_name: str, container_name: str, mount_dir: str = "/workspace") -> int:
+        command = f"docker run --detach -i --name {container_name} --mount type=bind,src={self.repo_root()},dst={mount_dir} {image_name}"
         print(f"starting container from image: {image_name}")
         result, _ = self.execute(command=command)
         if result.returncode != 0:
-            print(f"docker build failed with: {result.returncode}")
+            print(f"docker run failed with: {result.returncode}")
             print(f"command was: {command}")
         else:
             print(f"successfully started {container_name} from: {image_name}")
@@ -70,6 +70,12 @@ class Repo_Helper:
             print(f"result of: {command} from: {result.returncode}")
         return result.returncode
 
+    def create_venv_in_container(self, container_name: str, venv_dir: str|None = None):
+        if venv_dir != None:
+            self.exec_in_container(command=f"python3 -m venv {venv_dir}", container_name=container_name)
+        else:
+            self.exec_in_container(command=f"python3 -m venv .venv", container_name=container_name)
+
     def exec_in_container_venv(self, command: str, container_name: str, venv_path: str = ".venv_container"):
         docker_command = f'docker exec -i {container_name} /bin/bash -c "source {venv_path}/bin/activate && {command}"'
         result, _ = self.execute(docker_command, log=True)
@@ -81,13 +87,24 @@ class Repo_Helper:
         return result
 
     def stop_container(self, container_name: str):
-        command = f"docker stop container_name"
+        command = f"docker stop {container_name}"
         result,_ = self.execute(command=command, log=True)
         if result.returncode != 0:
             print(f"docker stop failed with: {result}")
             print(f"command was: {command}")
         else:
-            print(f"successfully stopped {container_name}")
+            print(f"successfully stopped container {container_name}")
+        return result
+
+    def remove_container(self, container_name: str):
+        command = f"docker rm {container_name}"
+        result, output = self.execute(command=command, log=True)
+        if result.returncode != 0:
+            print(f"docker rm failed with: {result.returncode}")
+            print(f"command was: {command}")
+            print(f"output: {output}")
+        else:
+            print(f"successfully removed container {container_name}")
         return result
 
 def main():
