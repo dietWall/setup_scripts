@@ -4,8 +4,36 @@
 import subprocess
 import os
 
-class Repo_Helper:
+from dataclasses import dataclass
 
+@dataclass
+class Container:
+    def __init__(self, ps_line:str):
+        import re
+        str = ps_line.strip()
+        str = re.split(r"\s\s\s+", str)
+        #index reflects docker ps output
+        self.id         = str[0]
+        self.image      = str[1]
+        self.command    = str[2]
+        self.created    = str[3]
+        self.status     = str[4]
+        #special treatmend if ports exposed
+        if len(str) == 7:
+            self.ports = str[5]
+            self.names = str[6]
+        if len(str) == 6:
+            self.names = str[5]
+
+    id:         str
+    image:      str
+    command:    str
+    created:    str
+    status:     str
+    ports:      str|None = None
+    names:      str|None = None
+
+class Repo_Helper:
     def __init__(self, logfile: str|None = None) -> None:
         self.logfile = logfile
 
@@ -57,7 +85,7 @@ class Repo_Helper:
             print(f"docker run failed with: {result.returncode}")
             print(f"command was: {command}")
         else:
-            print(f"successfully started {container_name} from: {image_name}")
+            print(f"successfully started container {container_name} from: {image_name}")
         return result.returncode
 
     def exec_in_container(self, command: str, container_name: str):
@@ -86,6 +114,17 @@ class Repo_Helper:
             print(f"result of: {docker_command} from: {result.returncode}")
         return result
 
+    def compose_up(self, compose_file: str):
+        command = f"docker compose -f {compose_file} up -d"
+        result, output = self.execute(command)
+        
+        if result.returncode != 0:
+            print(f"command failed with: {result.returncode}")
+            print(f"command was: {command}")
+        else:
+            print(f"result of: {command} from: {result.returncode}")
+        return result
+
     def stop_container(self, container_name: str):
         command = f"docker stop {container_name}"
         result,_ = self.execute(command=command, log=True)
@@ -107,6 +146,30 @@ class Repo_Helper:
             print(f"successfully removed container {container_name}")
         return result
 
+    def get_containers(self, image: str|None) -> list[Container]:
+        if image != None:
+            command = f'docker ps -f "ancestor={image}"'
+        else:
+            command = f'docker ps -a'
+        result, to_strip = self.execute(command)
+        output = []
+        if result.returncode != 0:
+            print(f"docker ps failed with: {result.returncode}")
+            print(f"command was: {command}")
+            print(f"output: {to_strip}")
+        else:
+            #prepare output:
+            for l in to_strip[1:]: 
+                c= Container(l.strip())
+                output.append(c)
+        return output
+    
+    def prune(self, force=False):
+        if force == False:
+            self.execute("docker image prune")
+        else:
+            self.execute("docker image prune -f")
+    
 def main():
     import argparse
     import os
