@@ -1,0 +1,13 @@
+[project]
+name = "setup_scripts"
+version = "0.1.0"
+description = "several python packages for automation"
+
+[build-system]
+requires = [
+    "setuptools>=60"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ['repo_helpers']
