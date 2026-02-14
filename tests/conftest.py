@@ -49,7 +49,7 @@ def repo_root() -> str:
     repo_root = git_result.stdout.strip().decode("utf-8")
     return repo_root
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def containers(repo_root):
     run_network(repo_root)
     containers = network()
@@ -59,11 +59,11 @@ def containers(repo_root):
         con.stop()
         con.remove()
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def client_container(containers):
     return client(containers)
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def server_container(containers):
     return server(containers)
 
