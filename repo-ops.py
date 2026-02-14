@@ -28,7 +28,6 @@ def main():
     parser = argparse.ArgumentParser(description="Builds and run different images and containers in this repo")
     ops = ["build", "run", "test"]
 
-
     parser.add_argument("--package", "-p", help="selects a package", choices=packages, default=None, required=True)
     parser.add_argument("--operations", "-o", help="selects the operations", choices=ops, nargs="+")
 
@@ -39,7 +38,8 @@ def main():
 
     args = parser.parse_args()
     helper = docktools(None)
-    
+    #todo: operations must be: build package, test package, release package,
+    #  not build container, run container
     for op in args.operations:
         if op == "build":
             helper.build_docker_image(dockerfile=packages[args.package]["dir"], image_name=args.package)
@@ -54,15 +54,12 @@ def main():
             helper.exec_in_container_venv(command=packages[args.package]["testcommand"], container_name=args.package, venv_path=venv_dir)
 
     if args.keep_running == False:
-        helper.stop_container(args.package)
-        helper.remove_container(args.package)
+        if helper.get_containers(args.package) != []:
+            helper.stop_container(args.package)
+            helper.remove_container(args.package)
     else:
         print(f"keeping the container {args.package} running, you can enter it with:")
         print(f"docker exec -it {args.package} bash")
-
-    #if args.run != None:
-        #helper.start_container(image_name=) # (dockerfile=packages[args.build]["dir"], image_name=args.build)
-
 
 if __name__ == "__main__":
     main()
