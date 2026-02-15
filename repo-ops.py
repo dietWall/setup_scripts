@@ -9,16 +9,13 @@ helper = docktools()
 packages = \
 {
     'repo_helper' :{
-        "dir" : os.path.join(helper.repo_root(), "repo_helpers"),
-        "relative_dir" : "repo_helpers",
-        "testcommand" : "pytest -s -v tests/test_helper.py",
-        "mount_dir" : "/workspace/"
+        "test" : "pytest -s -v tests/test_helper.py",
+        "build" : "python -m build ."
     }, 
     'ssh-keys' :{
-        "dir" : os.path.join(helper.repo_root(), "ssh"),
-        "relative_dir" : "ssh",
-        "testcommand" : "pytest -s -v tests/test-ssh-keys.py",
-        "mount_dir" : "/workspace/"
+        "build" : "python -m build .",
+        "test" : "pytest -s -v tests/test_ssh_keys.py"
+        
     } 
 }
 
@@ -26,7 +23,7 @@ def main():
     """Main function to build Docker images and run containers"""
     
     parser = argparse.ArgumentParser(description="Builds and run different images and containers in this repo")
-    ops = ["build", "run", "test"]
+    ops = ["build", "test"]
 
     parser.add_argument("--package", "-p", help="selects a package", choices=packages, default=None, required=True)
     parser.add_argument("--operations", "-o", help="selects the operations", choices=ops, nargs="+")
@@ -42,9 +39,15 @@ def main():
     #  not build container, run container
     for op in args.operations:
         if op == "build":
-            helper.build_docker_image(dockerfile=packages[args.package]["dir"], image_name=args.package)
-        elif op == "run":
-            helper.start_container(image_name=args.package, container_name=args.package, mount_dir=packages[args.package]["mount_dir"])
+            result, output = helper.execute(command=packages[args.package]["build"])
+            if result.returncode != 0:
+                print(f"build of {args.package} failed with {result.returncode}")
+                for l in output:
+                    print(l.strip())
+            else:
+                print(f"build successful")
+                for l in output:
+                    print(l.strip())
         elif op == "test":
             requirements_file = os.path.join(packages[args.package]["mount_dir"], packages[args.package]["relative_dir"], "requirements.txt")
             print(requirements_file)

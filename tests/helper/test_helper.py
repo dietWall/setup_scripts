@@ -5,11 +5,11 @@ import os
 from repo_helpers.Repo_Helper import Repo_Helper
 
 @pytest.mark.parametrize("log", ["image_build.txt", None])
-def test_build_image(log, log_dir):
+def test_build_image(log, repo_root):
     image_name = "repo_helper_test"
 
     if log != None:
-        logfile = os.path.join(log_dir, log)
+        logfile = os.path.join(repo_root,"test_log" , log)
     else: logfile = None
 
     docker = Repo_Helper(logfile=logfile)
@@ -37,11 +37,11 @@ def test_execute_local(command):
     result, output = helper.execute(command=command, log=False)
     assert(result.returncode == 0), f"Command {command} has failed with exitcode: {result.returncode}"
 
-#this should be tested, if git is not installed => create a container
-def test_repo_root():
-    this_dir = os.path.dirname(__file__)
-    one_dir_up = os.path.join(this_dir, "..")
-    repo_root = os.path.abspath(one_dir_up)
+
+def test_repo_root(repo_root):
+    #this_dir = os.path.dirname(__file__)
+    #one_dir_up = os.path.join(this_dir, "..", "..")
+    #repo_root = os.path.abspath(one_dir_up)
     
     helper = Repo_Helper(None)
     helper_repo_root = helper.repo_root()
