@@ -1,2 +1,4 @@
-build
+docker
 pytest
+paramiko
+python-dotenv
