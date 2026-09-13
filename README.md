@@ -1,6 +1,6 @@
 # setup_scripts
-contains some of my scripts to start development faster.  
-Since my build and development environment is getting bigger, I wanted to have some reproducible scripts for setting up SSH connections, setting up build environments, docker images, installing software and so on.  
+contains some of my scripts to start development faster.
+Since my build and development environment is getting bigger, I wanted to have some reproducible scripts for setting up SSH connections and installing software.  
 In future, I plan to extend this repo with some additional, reusable functions on demand, so I don´t have to remind how to do this repeating tasks.
 
 # ssh-keys.py
@@ -50,5 +50,5 @@ If you have any suggestions to improve code/tests, feel free to create a PR for 
 More specifically:
 - I want to test password prompt automatically.
 - add a connection check at the end of test_ssh_keys_deployment
-- Remove Password build_arg from dockerfile
+
 
