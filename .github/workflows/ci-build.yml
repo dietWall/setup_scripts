@@ -24,17 +24,24 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'pyproject.toml'
       
-      - name: Install dependencies
+      - name: Create virtual environment
         run: |
+          python -m venv .venv
+      
+      - name: Activate virtual environment and install dependencies
+        run: |
+          source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install ".[dev]"
       
       - name: Run tests
         run: |
+          source .venv/bin/activate
           pytest tests/test_package.py
       
       - name: Build package
         run: |
+          source .venv/bin/activate
           pip install build
           python -m build
       
@@ -45,4 +52,3 @@ jobs:
           path: dist/
           retention-days: 7
           if-no-files-found: ignore
-          # overwrite-mode: allow-existing
