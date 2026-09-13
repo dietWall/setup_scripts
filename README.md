@@ -19,31 +19,29 @@ This file requires just one line containing PASSWORD=yourpassword.
 ssh-keygen is used for generation. This executable is available on all my Linux and Windows environments. For deployment, paramiko is used. 
 
 # Testing
-Tests are implemented in tests/test-ssh-keys.py
-There is a test for each KEY_TYPE generation and KEY_TYPE deployment between from one to another container.
 
-Before running the tests you have to build the docker images. Best approach is to run
-```
-./docker-operations.py --build test_image
-```
-This creates a docker image locally from scratch.
+Tests are implemented in tests/ directory.
 
-This script has also some requirements on the environment. You probably want to create a virtual environment and install requirements.txt first.    
-
-If you want to test ssh-keys.py script manually, you can run  
-```
-./docker-operations.py --run test_image #starts only one container 
-./docker-operations.py --run ssh-network #starts 2 interconnected containers with docker compose
+To install development dependencies (`pytest`, `python-dotenv` etc.):
+```bash
+pip install -e ".[dev]"
 ```
 
-This will start a container with the script inside, so you can play around without affecting your client PC.
-
+To run tests:
+```bash
+pytest
 ```
-./docker-operations.py --stop test_image
-```
-stops and removes all containers, defined from the provided Dockerfile.
 
-Since the purpose of the scripts is to modify client/server PCs, the images and containers are only used for testing.
+Or with coverage reporting:
+```bash
+pytest --cov=scripts --cov-report=term-missing
+```
+
+To build the package:
+```bash
+pip install build
+python -m build
+```
 
 
 # Improvements / Nice to have

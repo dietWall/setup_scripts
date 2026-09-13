@@ -63,7 +63,7 @@ def password_prompt() -> str:
     password = getpass.getpass(prompt="Enter password for deployment: ")
     return password
 
-if __name__ == "__main__":
+def main():
     import argparse
     parser = argparse.ArgumentParser(description="Manage and deploy SSH keys.")
 
@@ -81,37 +81,40 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"args: {args}")
 
-    if args.generate != None:
-        print(f"Generating {args.generate} SSH key at {args.key_path}...")
+    # if args.generate != None:
+    #     print(f"Generating {args.generate} SSH key at {args.key_path}...")
 
-        if generate_ssh_key(args.key_path, args.generate) != 0:
-            print("Failed to generate SSH key.")
-        else:
-            print(f"SSH key with {args.generate} generated at {args.key_path}")
+    #     if generate_ssh_key(args.key_path, args.generate) != 0:
+    #         print("Failed to generate SSH key.")
+    #     else:
+    #         print(f"SSH key with {args.generate} generated at {args.key_path}")
 
-    if args.deploy_to_host != None:
-        print(f"Deploying SSH key to {args.deploy_to_host}...")
-        public_key_path = os.path.join(args.key_path, f'id_{args.generate}.pub')
+    # if args.deploy_to_host != None:
+    #     print(f"Deploying SSH key to {args.deploy_to_host}...")
+    #     public_key_path = os.path.join(args.key_path, f'id_{args.generate}.pub')
         
-        if not os.path.exists(public_key_path):
-            print(f"Public key not found at {public_key_path}. Cannot deploy.")
-        else:
-            password = ""
-            if args.password_type == "prompt":
-                password = password_prompt()
-            else:
-                from dotenv import dotenv_values
-                config = dotenv_values(args.dotenv_file)
-                password = config.get("PASSWORD", "")
+    #     if not os.path.exists(public_key_path):
+    #         print(f"Public key not found at {public_key_path}. Cannot deploy.")
+    #     else:
+    #         password = ""
+    #         if args.password_type == "prompt":
+    #             password = password_prompt()
+    #         else:
+    #             from dotenv import dotenv_values
+    #             config = dotenv_values(args.dotenv_file)
+    #             password = config.get("PASSWORD", "")
 
-            if password is not None and password != "":
-                result = deploy(public_key_path, args.deploy_to_host, password)
+    #         if password is not None and password != "":
+    #             result = deploy(public_key_path, args.deploy_to_host, password)
 
-                if result != 0:
-                    print("Failed to deploy SSH key.")
-                else:
-                    print(f"SSH key {public_key_path} deployed to {args.deploy_to_host} successfully.")
-            else:
-                print("No password provided. Cannot deploy.")
-                exit(1)
+    #             if result != 0:
+    #                 print("Failed to deploy SSH key.")
+    #             else:
+    #                 print(f"SSH key {public_key_path} deployed to {args.deploy_to_host} successfully.")
+    #     else:
+    #         print("No password provided. Cannot deploy.")
+    #         exit(1)
     exit(0)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,2 @@
+# requirements for global installation
+paramiko>=3.4.0

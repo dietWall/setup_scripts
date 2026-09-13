@@ -1,13 +1,35 @@
+[build-system]
+requires = ["setuptools >= 80.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "setup_scripts"
 version = "0.1.0"
 description = "several python packages for automation"
-
-[build-system]
-requires = [
-    "setuptools>=60"
+requires-python = ">=3.10"
+dependencies = [
+    "paramiko >= 3.4.0",
 ]
-build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ['repo_helpers']
+[project.scripts]
+ssh-keys = "scripts.ssh_keys:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest >= 8.0.0",
+    "pytest-cov >= 4.0.0",
+    "pytest-mock >= 3.12.0",
+    "python-dotenv >= 1.0.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+
+
+
+
