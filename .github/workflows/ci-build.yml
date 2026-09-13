@@ -27,14 +27,13 @@ jobs:
       - name: Create virtual environment
         run: |
           python -m venv .venv
-      
-      
-      - name: Activate virtual environment and install dependencies
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
         run: |
-          source .venv/bin/activate
           python -m pip install --upgrade pip
-          pip install ".[dev]"
-          pip install -r requirements.txt
+          python -m pip install ".[dev]"
+          python -m pip install -r requirements.txt
 
       - name: Debug Python environment
         run: |
@@ -46,14 +45,12 @@ jobs:
 
       - name: Run tests
         run: |
-          source .venv/bin/activate && pytest tests/test_package.py
-      
+          pytest tests/test_package.py
+
       - name: Build package
         run: |
-          source .venv/bin/activate
-          pip install build
           python -m build
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
