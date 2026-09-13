@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -24,24 +24,12 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'pyproject.toml'
       
-      - name: Create virtual environment
+      - name: Install dependencies (setup-python provides pip in $PATH)
         run: |
-          python -m venv .venv
-          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
-
-      - name: Install dependencies
-        run: |
+          python --version
           python -m pip install --upgrade pip
           python -m pip install ".[dev]"
           python -m pip install -r requirements.txt
-
-      - name: Debug Python environment
-        run: |
-          python --version
-          which python
-          python -m pip --version
-          python -m pip show build
-          python -c "import build; print(build); print(build.__file__)"
 
       - name: Run tests
         run: |
@@ -52,7 +40,7 @@ jobs:
           python -m build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: python-build-${{ matrix.python-version }}
           path: dist/
